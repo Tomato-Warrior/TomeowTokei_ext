@@ -6,6 +6,7 @@
 
   "browser_action": {
     "default_icon": "icon.png",
+    "default_popup": "option.html",
     "default_title": "TomeowTokei"
   },
   "options_page": "option.html",

@@ -4,17 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://use.fontawesome.com/527da2a0e3.css" />
   <style>
     body {
       width: 300px;
       height: 300px;
     }
+    .d-none {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <img src="tomato-logo.png" alt="">
-  <button id="work">Start</button>
-  <button id="rest">Stop</button>
+  <div class="logincontainer">
+    <form action="http://127.0.0.1:3000/api/v1/login" method="post">
+      Email: <input type="email" id="email">
+      Password: <input type="password" id="password">
+      <input type="submit" name="登入" value="登入">
+    </form>
+  </div>
+  <div class="logoutcontainer">
+    <button class="">Logout</button>
+  </div>
+  <div class="tomato d-none">
+    <div id="work">
+      <i class="far fa-play-circle"></i>
+      <i class="fas fa-play startbtn"></i>
+      <button class="btn">Start</button>
+    </div>
+    <div id="rest">
+      <button class="btn">Rest</button>
+    </div>
+  </div>
+
   <script src="option.js"></script>
+  <div class="display_time"></div>
 </body>
 </html>
