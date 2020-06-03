@@ -7,31 +7,41 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://use.fontawesome.com/527da2a0e3.css"/>
   <link rel="stylesheet" href="option.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 </head>
 <body>
-  <img src="tomato-logo.png" alt="">
-  <div class="logincontainer">
-    <form action="http://127.0.0.1:3000/api/v1/login" method="post">
-      Email: <input type="email" id="email">
-      Password: <input type="password" id="password">
-      <input type="submit" name="登入" value="登入">
-    </form>
-  </div>
-  <div class="tomato d-none">
-    <div id="work">
-      <i class="far fa-play-circle"></i>
-      <i class="fas fa-play startbtn"></i>
-      <button class="btn">Start</button>
+  <div class="container">
+    <img src="tomato-logo.png" alt="">
+    <div class="logincontainer">
+      <form action="http://127.0.0.1:3000/api/v1/login" method="post">
+        Email: <input type="email" id="email">
+        Password: <input type="password" id="password">
+        <input type="submit" name="登入" value="登入">
+      </form>
     </div>
-    <div id="rest">
-      <button class="btn">Rest</button>
-    </div>
-    <div class="logoutcontainer">
-      <button class="">登出</button>
-    </div>
-  </div>
+    <div class="tomato d-none">
+      <div id="work">
+        <i class="fa fa-play-circle"></i>
+        <i class="fa fa-play startbtn"></i>
+        <button class="btn">Start</button>
+      </div>
+      <div id="rest">
+        <button class="btn">Rest</button>
+      </div>
+      <div>
+        <select class="tasks form-control">
 
-  <script src="option.js"></script>
-  <div class="display_time"></div>
+        </select>
+      </div>
+      <div class="logoutcontainer">
+        <button class="">登出</button>
+      </div>
+    </div>
+  
+    <script src="option.js"></script>
+    <div class="display_time"></div>
+  </div>
 </body>
 </html>

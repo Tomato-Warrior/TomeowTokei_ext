@@ -33,9 +33,9 @@ function initialize() {
     localStorage.getItem('auth_token') === "undefined" || 
     localStorage.getItem('auth_token') === null
   ) {
-    loginPage(false);
+    pageContent(false);
   } else {
-    loginPage(true);
+    pageContent(true);
   }
 }
 
@@ -43,7 +43,6 @@ initialize();
 
 
 // handle login
-
 function postData(url, data) {
   return fetch(url, {
     body: JSON.stringify(data),
@@ -67,38 +66,51 @@ form.addEventListener('submit', function loginJson(e) {
   postData("http://127.0.0.1:3000/api/v1/login", { email: email.value, password: password.value })
     .then((data) => {
       localStorage.setItem("auth_token", data["auth_token"]);
+      localStorage.setItem("tasks", JSON.stringify(data["tasks"]));
       if (data["message"] === "ok") {
-        loginPage(true);
+        pageContent(true);
       }
     })
     .catch((error) => {
     });
 });
 
-function loginPage(isLogin) {
+// 控制畫面內容
+function pageContent(isLogin) {
   let logincontainer = document.querySelector('.logincontainer');
-  console.log(logincontainer)
   let tomato = document.querySelector('.tomato');
+  let body = document .querySelector('body');
+  
   if (isLogin) {
     logincontainer.classList.add("d-none");
     tomato.classList.remove("d-none");
+    body.classList.add("login-color");
+    // 取得user's tasks
+    var tasks = document.querySelector('.tasks');
+    var allTasks = JSON.parse(localStorage.getItem('tasks'));
+    tasks.innerHTML += allTasks.map(task => 
+      `
+      <option id=${task.id} value="${task.title}">${task.title}</option>
+      `
+    ).join('')
   } else {
     localStorage.clear();
     logincontainer.classList.remove("d-none");
     tomato.classList.add("d-none");
+    body.classList.remove("login-color");
+    body.classList.add("logout-color");
   }
 }
 
 // handle logout
-
 let logout = document.querySelector('.logoutcontainer');
 logout.addEventListener('click', function logoutjson(e) {
   e.preventDefault();
-  let logoutvalue = localStorage.getItem("auth_token");
-  postData("http://127.0.0.1:3000/api/v1/logout", { auth_token: logoutvalue })
+  let logoutValue = localStorage.getItem("auth_token");
+  postData("http://127.0.0.1:3000/api/v1/logout", { auth_token: logoutValue })
     .then((data) => {
       // console.log(data), {message: "you have logged out"}
-      loginPage(false);
+      pageContent(false);
     })
     .catch((error) => {
       console.log(error);

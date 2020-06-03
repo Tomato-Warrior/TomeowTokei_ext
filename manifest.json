@@ -18,5 +18,6 @@
     "activeTab",
     "alarms",
     "http://localhost:3000/"
-  ]
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net; object-src 'self'"
 }
