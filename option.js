@@ -27,15 +27,22 @@ function switchAlarm() {
   window.close()
 }
 
+// 確認是否有登入過
+function initialize() {
+  if (
+    localStorage.getItem('auth_token') === "undefined" || 
+    localStorage.getItem('auth_token') === null
+  ) {
+    loginPage(false);
+  } else {
+    loginPage(true);
+  }
+}
+
+initialize();
 
 
 // handle login
-
-function getLoginValue() {
-  const email = document.querySelector('#email');
-  const password = document.querySelector('#password');
-  return { email: email.value, password: password.value };
-}
 
 function postData(url, data) {
   return fetch(url, {
@@ -53,19 +60,18 @@ function postData(url, data) {
 }
 
 const form = document.querySelector('form');
- 
 form.addEventListener('submit', function loginJson(e) {
   e.preventDefault();
-  postData("http://127.0.0.1:3000/api/v1/login", getLoginValue())
+  const email = document.querySelector('#email');
+  const password = document.querySelector('#password');
+  postData("http://127.0.0.1:3000/api/v1/login", { email: email.value, password: password.value })
     .then((data) => {
       localStorage.setItem("auth_token", data["auth_token"]);
       if (data["message"] === "ok") {
         loginPage(true);
       }
-      // notice login success 
     })
     .catch((error) => {
-      // notice no account record
     });
 });
 
@@ -85,18 +91,13 @@ function loginPage(isLogin) {
 
 // handle logout
 
-// function getLogoutValue() {
-//   let logout = localStorage.getItem("auth_token");
-//   return { auth_token: logout };
-// }
-
 let logout = document.querySelector('.logoutcontainer');
 logout.addEventListener('click', function logoutjson(e) {
   e.preventDefault();
   let logoutvalue = localStorage.getItem("auth_token");
   postData("http://127.0.0.1:3000/api/v1/logout", { auth_token: logoutvalue })
     .then((data) => {
-      console.log(data)
+      // console.log(data), {message: "you have logged out"}
       loginPage(false);
     })
     .catch((error) => {
