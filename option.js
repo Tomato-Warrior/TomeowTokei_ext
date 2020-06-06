@@ -133,11 +133,9 @@ logout.addEventListener('click', function logoutjson(e) {
   let logoutValue = localStorage.getItem("auth_token");
   postData("http://127.0.0.1:3000/api/v1/logout", { auth_token: logoutValue })
     .then((data) => {
-      // console.log(data), {message: "you have logged out"}
       pageContent(false);
     })
     .catch((error) => {
-      console.log(error);
     })
 });
 
@@ -211,7 +209,6 @@ function startWorkPromise() {
           workStop.classList.add("d-none")
           reject(confirmDropOrNot)
         } else {
-
           end_time += (Date.now() - stopTime) 
           setCounter = setInterval(() => {
             secondsLeft = Math.round((end_time - Date.now()) / 1000)
@@ -245,15 +242,16 @@ function finishWorkApiPromise() {
 
 //開始休息計時
 function startRelaxPromise() {
-let secondsLeft = Math.round((end_time - now) / 1000)
-// let workStart = document.querySelector(".workstartbtn")
-let workStop = document.querySelector(".workstopbtn")
-let relaxStart = document.querySelector(".relaxstartbtn")
-let setCounter
-let seconds = relaxStart.dataset.time
+let setCounter;
+let workStop = document.querySelector(".workstopbtn");
+let relaxStart = document.querySelector(".relaxstartbtn");
+let seconds = relaxStart.dataset.time;
+let now = Date.now();
+let end_time = now + seconds * 1000;
+let secondsLeft = Math.round((end_time - now) / 1000);
+let workStart = document.querySelector(".workstartbtn")
 
-let now = Date.now()
-let end_time = now + seconds * 1000
+
 return new Promise(function(resolve, reject) {
   relaxStart .classList.add("d-none")
   workStop.classList.remove("d-none")
@@ -264,7 +262,7 @@ return new Promise(function(resolve, reject) {
   
     if (secondsLeft < 0) {
       clearInterval(setCounter)
-      workStop.removeEventListener('click', stop)  
+      workStop.removeEventListener('click', stop)
       resolve("relaxtime over")
     }
   },1000)
@@ -321,45 +319,44 @@ function breakWorkApiPromise(data){
 
 function start() {
   startWorkApiPromise().then((data) => {
-    let workStop = document.querySelector(".workstopbtn")
-    let relaxStart = document.querySelector(".relaxstartbtn")
-    workStop.dataset.id = data["tictac_id"]
-    relaxStart.dataset.id = data["tictac_id"]
+    let workStop = document.querySelector(".workstopbtn");
+    let relaxStart = document.querySelector(".relaxstartbtn");
+    workStop.dataset.id = data["tictac_id"];
+    relaxStart.dataset.id = data["tictac_id"];
     return startWorkPromise()
   }).then((data) => {
-    console.log(data)
     return finishWorkApiPromise()
   }).then((data) => {
-    console.log(data)
     let workStop = document.querySelector(".workstopbtn")
     let relaxStart = document.querySelector(".relaxstartbtn")
     workStop.classList.add("d-none")
     relaxStart.classList.remove("d-none")
+    relaxStart.addEventListener('click', relax)
     alert('休息一下');
     displayTimeLeft(relaxStart.dataset.time)
   }).catch((data) => {
-    console.log(data)
     return breakWorkApiPromise(data)
   }).then((data) => {
-    console.log(data)
   })
 }
 
 function relax() {
   startRelaxPromise().then((data) => {
-    console.log(data)
     let workStart = document.querySelector(".workstartbtn")
     let workStop = document.querySelector(".workstopbtn")
-    let relaxStart = document.querySelector(".relaxstartbtn")
+    // let relaxStart = document.querySelector(".relaxstartbtn")
+    workStart.classList.remove("d-none")
     workStop.classList.add("d-none")
-    relaxStart.classList.remove("d-none")
     alert("該開始下一顆番茄了")
     displayTimeLeft(workStart.dataset.time)
   }).catch((data) => {
+    let workStart = document.querySelector(".workstartbtn")
+    let workStop = document.querySelector(".workstopbtn")
+    let relaxStart = document.querySelector(".relaxstartbtn")
     workStart.classList.remove("d-none")
-    relaxStart.classList.add("d-none")
     workStop.classList.add("d-none")
-    alert("該開始下一顆番茄了")
+    relaxStart.classList.add("d-none")
+    alert("直接開始下一顆番茄")
     displayTimeLeft(workStart.dataset.time)
   })
 }
