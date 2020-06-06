@@ -1,31 +1,31 @@
-var btns = document.getElementsByClassName('btn')
+// var btns = document.getElementsByClassName('btn')
 
-Array.prototype.map.call(btns, node => {
-  node.addEventListener('click', switchAlarm)
-})
+// Array.prototype.map.call(btns, node => {
+//   node.addEventListener('click', switchAlarm)
+// })
 
-var port = chrome.runtime.connect({name:'tictac'})
+// var port = chrome.runtime.connect({name:'tictac'})
 
-port.onMessage.addListener(function(response) {
-  console.log(response.timeType)
-  if(response.func === 'getTimeInfo') {
-    if (response.timeType === 'rest' && response.restNum === 3) {
-      document.getElementsById('finish').style.display = 'block'
-      document.getElementsById('work').style.display = 'none'
-      document.getElementsById('rest').style.display = 'none'
-    } else {
-    document.getElementById(response.timeType === 'work' ? 'work' : 'rest').style.display = 'block'
-    document.getElementById(response.timeType === 'work' ? 'rest' : 'work').style.display = 'none'
-    }
-  }
-})
+// port.onMessage.addListener(function(response) {
+//   console.log(response.timeType)
+//   if(response.func === 'getTimeInfo') {
+//     if (response.timeType === 'rest' && response.restNum === 3) {
+//       document.getElementsById('finish').style.display = 'block'
+//       document.getElementsById('work').style.display = 'none'
+//       document.getElementsById('rest').style.display = 'none'
+//     } else {
+//     document.getElementById(response.timeType === 'work' ? 'work' : 'rest').style.display = 'block'
+//     document.getElementById(response.timeType === 'work' ? 'rest' : 'work').style.display = 'none'
+//     }
+//   }
+// })
 
-port.postMessage({func: 'getTimeInfo'})
+// port.postMessage({func: 'getTimeInfo'})
 
-function switchAlarm() {
-  port.postMessage({func: 'switchAlarm'})
-  window.close()
-}
+// function switchAlarm() {
+//   port.postMessage({func: 'switchAlarm'})
+//   window.close()
+// }
 
 // 確認是否有登入過
 function initialize() {
@@ -40,7 +40,6 @@ function initialize() {
 }
 
 initialize();
-
 
 // handle login
 function postData(url, data) {
@@ -66,7 +65,6 @@ form.addEventListener('submit', function loginJson(e) {
   postData("http://127.0.0.1:3000/api/v1/login", { email: email.value, password: password.value })
     .then((data) => {
       localStorage.setItem("auth_token", data["auth_token"]);
-      localStorage.setItem("tasks", JSON.stringify(data["tasks"]));
       if (data["message"] === "ok") {
         pageContent(true);
       }
@@ -85,14 +83,8 @@ function pageContent(isLogin) {
     logincontainer.classList.add("d-none");
     tomato.classList.remove("d-none");
     body.classList.add("login-color");
-    // 取得user's tasks
-    var tasks = document.querySelector('.tasks');
-    var allTasks = JSON.parse(localStorage.getItem('tasks'));
-    tasks.innerHTML += allTasks.map(task => 
-      `
-      <option id=${task.id} value="${task.title}">${task.title}</option>
-      `
-    ).join('')
+    body.classList.remove("logout-color");
+    getAllTasks();
   } else {
     localStorage.clear();
     logincontainer.classList.remove("d-none");
@@ -101,6 +93,38 @@ function pageContent(isLogin) {
     body.classList.add("logout-color");
   }
 }
+
+// 找任務
+function getAllTasks() {
+  let auth_token = localStorage.getItem("auth_token");
+  postData("http://127.0.0.1:3000/api/v1/gettasks", { auth_token: auth_token })
+    .then((data) => {
+      localStorage.setItem("tasks", JSON.stringify(data["tasks"]));
+      taskDropdown();
+    })
+    .catch((error) => {
+    });
+}
+
+// 任務dropdown list
+function taskDropdown() {
+  let tasks = document.querySelector('.tasks');
+  let allTasks = JSON.parse(localStorage.getItem('tasks'));
+  tasks.innerHTML += allTasks.map(task => 
+    `
+    <option data-id=${task.id} value="${task.title}">${task.title}</option>
+    `
+  ).join('')
+}
+
+// 確認選取的任務
+const selectedTask = document.querySelector('.tasks');
+selectedTask.addEventListener('change', (e) => {
+  let task_title = e.target.value;
+  let task_id = e.target.options[e.target.selectedIndex].dataset.id;
+  localStorage.removeItem("selectedTask");
+  localStorage.setItem("selectedTask", JSON.stringify({task_id: task_id, task_title: task_title}))
+});
 
 // handle logout
 let logout = document.querySelector('.logoutcontainer');
@@ -116,3 +140,230 @@ logout.addEventListener('click', function logoutjson(e) {
       console.log(error);
     })
 });
+
+// clock countdown
+function displayTimeLeft(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainSeconds = seconds % 60
+  const display = `${minutes < 10 ? 0 : ''}${minutes}:${remainSeconds < 10 ? 0 : ''}${remainSeconds}`
+  const displayTimeLeft = document.querySelector('.display-time')
+  displayTimeLeft.textContent = display
+}
+
+let startBtn = document.querySelector('.workstartbtn');
+startBtn.addEventListener('click', function(e) {
+  e.preventDefault;
+  startWorkApiPromise();
+  startWorkPromise();
+  start();
+})
+
+//開始api
+function startWorkApiPromise() {
+  let auth_token = localStorage.getItem("auth_token");
+  let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
+  let task_id = selectedTask.task_id;
+  return new Promise(function(resolve, reject) {
+    postData("http://127.0.0.1:3000/api/v1/startwork", { auth_token: auth_token, task_id: task_id})
+    .then((data) => {
+      resolve((data));
+    })
+  })
+}
+
+//開始計時
+function startWorkPromise() {
+  let workStart = document.querySelector('.workstartbtn');
+  let workStop = document.querySelector('.workstopbtn');
+  const seconds = workStart.dataset.time
+  let setCounter
+  //設定計時器
+  let now = Date.now()
+  let end_time = now + seconds * 1000
+  let secondsLeft = Math.round((end_time - now) / 1000)
+
+  return new Promise(function(resolve, reject) {
+    workStart.classList.add("d-none")
+    workStop.classList.remove("d-none")
+    setCounter = setInterval(() => {
+      secondsLeft = Math.round((end_time - Date.now()) / 1000)
+      displayTimeLeft(secondsLeft)    
+      if (secondsLeft <= 0) {
+        clearInterval(setCounter)
+        workStop.removeEventListener('click', stop)
+        resolve("timeup")
+      }
+    },1000)
+
+    //中斷事件
+    workStop.addEventListener('click', stop)
+
+    function stop() {
+      return new Promise(function(yes, no) {
+        clearInterval(setCounter);
+        const stopTime = Date.now()
+        // let confirmDropOrNot = confirm('確定要捨棄番茄嗎?')
+        if (confirm('確定要捨棄番茄嗎?')) {
+          clearInterval(setCounter);
+          displayTimeLeft(seconds)
+          workStop.removeEventListener('click', stop)
+          workStart.classList.remove("d-none")
+          workStop.classList.add("d-none")
+          reject(confirmDropOrNot)
+        } else {
+
+          end_time += (Date.now() - stopTime) 
+          setCounter = setInterval(() => {
+            secondsLeft = Math.round((end_time - Date.now()) / 1000)
+            displayTimeLeft(secondsLeft)    
+            if (secondsLeft <= 0) {
+              clearInterval(setCounter)
+              resolve("timeup")
+              workStop.removeEventListener('click', stop)
+            }
+          },1000)
+        }
+      })
+    }
+  })
+}
+
+//計時結束
+function finishWorkApiPromise() {
+  let auth_token = localStorage.getItem("auth_token");
+  let workStop = document.querySelector(".workstopbtn");
+  let tictac_id = workStop.dataset.id;
+  let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
+  let task_id = selectedTask.task_id;
+  return new Promise(function(resolve, reject) {
+    postData("http://127.0.0.1:3000/api/v1/finishwork", { auth_token: auth_token, tictac_id: tictac_id , task_id: task_id})
+    .then((data) => {
+      resolve((data));
+    })
+  })
+}
+
+//開始休息計時
+function startRelaxPromise() {
+let secondsLeft = Math.round((end_time - now) / 1000)
+// let workStart = document.querySelector(".workstartbtn")
+let workStop = document.querySelector(".workstopbtn")
+let relaxStart = document.querySelector(".relaxstartbtn")
+let setCounter
+let seconds = relaxStart.dataset.time
+
+let now = Date.now()
+let end_time = now + seconds * 1000
+return new Promise(function(resolve, reject) {
+  relaxStart .classList.add("d-none")
+  workStop.classList.remove("d-none")
+
+  setCounter = setInterval(() => {
+    secondsLeft = Math.round((end_time - Date.now()) / 1000)
+    displayTimeLeft(secondsLeft)    
+  
+    if (secondsLeft < 0) {
+      clearInterval(setCounter)
+      workStop.removeEventListener('click', stop)  
+      resolve("relaxtime over")
+    }
+  },1000)
+
+  //中斷休息
+  workStop.addEventListener('click', stop)
+  
+    function stop() {
+      return new Promise(function(yes, no) {
+        clearInterval(setCounter)
+        displayTimeLeft(relaxStart.dataset.time)
+        reject("relaxstop")
+        workStop.removeEventListener('click', stop)
+      })
+    }
+})
+}
+
+//中斷工作
+function breakWorkApiPromise(data){
+  let workStop = document.querySelector(".workstopbtn");
+  let tictac_id = workStop.dataset.id;
+  let auth_token = localStorage.getItem("auth_token");
+  let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
+  let task_id = selectedTask.task_id;
+  return new Promise(function(resolve, reject) {
+    postData("http://127.0.0.1:3000/api/v1/cancelwork", { auth_token: auth_token, task_id: task_id, tictac_id: tictac_id})
+    .then((data) => {
+      resolve((data));
+    })
+  })
+}
+
+// connect(){
+// this.clicked = false
+// let relax_num = 0
+
+// //每4次休息一次長休息
+
+// this.relaxbtnTarget.addEventListener("click", function(){
+//   relax_num += 1
+  
+//   if (relax_num % 4 === 0){
+//     dataset.time = "15"
+//   }else{
+//     dataset.time = "5"
+//   }
+// })
+
+// //顯示時間
+// this.displayTimeLeft(parseInt(this.startbtnTarget.dataset.time))
+// }
+
+
+function start() {
+  startWorkApiPromise().then((data) => {
+    let workStop = document.querySelector(".workstopbtn")
+    let relaxStart = document.querySelector(".relaxstartbtn")
+    workStop.dataset.id = data["tictac_id"]
+    relaxStart.dataset.id = data["tictac_id"]
+    return startWorkPromise()
+  }).then((data) => {
+    console.log(data)
+    return finishWorkApiPromise()
+  }).then((data) => {
+    console.log(data)
+    let workStop = document.querySelector(".workstopbtn")
+    let relaxStart = document.querySelector(".relaxstartbtn")
+    workStop.classList.add("d-none")
+    relaxStart.classList.remove("d-none")
+    alert('休息一下');
+    displayTimeLeft(relaxStart.dataset.time)
+  }).catch((data) => {
+    console.log(data)
+    return breakWorkApiPromise(data)
+  }).then((data) => {
+    console.log(data)
+  })
+}
+
+function relax() {
+  startRelaxPromise().then((data) => {
+    console.log(data)
+    let workStart = document.querySelector(".workstartbtn")
+    let workStop = document.querySelector(".workstopbtn")
+    let relaxStart = document.querySelector(".relaxstartbtn")
+    workStop.classList.add("d-none")
+    relaxStart.classList.remove("d-none")
+    alert("該開始下一顆番茄了")
+    displayTimeLeft(workStart.dataset.time)
+  }).catch((data) => {
+    workStart.classList.remove("d-none")
+    relaxStart.classList.add("d-none")
+    workStop.classList.add("d-none")
+    alert("該開始下一顆番茄了")
+    displayTimeLeft(workStart.dataset.time)
+  })
+}
+
+function stop(e) {
+  e.preventDefault();
+}
