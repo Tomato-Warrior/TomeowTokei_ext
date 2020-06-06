@@ -256,7 +256,6 @@ let seconds = relaxStart.dataset.time;
 let now = Date.now();
 let end_time = now + seconds * 1000;
 let secondsLeft = Math.round((end_time - now) / 1000);
-// let workStart = document.querySelector(".workstartbtn");
 let messageBox = document.querySelector('.messagebox');
 messageBox.innerHTML = "休息中...";
 
@@ -280,7 +279,7 @@ return new Promise(function(resolve, reject) {
   workStop.addEventListener('click', stop)
   
     function stop() {
-      return new Promise(function(yes, no) {
+      return new Promise(function(resolve, reject) {
         clearInterval(setCounter)
         displayTimeLeft(relaxStart.dataset.time)
         reject("relaxstop")
@@ -325,6 +324,8 @@ function breakWorkApiPromise(data){
 // this.displayTimeLeft(parseInt(this.startbtnTarget.dataset.time))
 // }
 
+let workStart = document.querySelector(".workstartbtn");
+displayTimeLeft(parseInt(workStart.dataset.time))
 
 function start() {
   startWorkApiPromise().then((data) => {
@@ -355,8 +356,6 @@ function relax() {
     let workStop = document.querySelector(".workstopbtn");
     let selectBox = document.querySelector('.selecttask');
     let messageBox = document.querySelector('.messagebox');
-    // messageBox.innerHTML = selectedTask;
-    // let relaxStart = document.querySelector(".relaxstartbtn")
     workStart.classList.remove("d-none");
     workStop.classList.add("d-none");
     selectBox.classList.remove("d-none");
