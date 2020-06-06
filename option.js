@@ -173,14 +173,20 @@ function startWorkApiPromise() {
 function startWorkPromise() {
   let workStart = document.querySelector('.workstartbtn');
   let workStop = document.querySelector('.workstopbtn');
-  const seconds = workStart.dataset.time
-  let setCounter
+  const seconds = workStart.dataset.time;
+  let setCounter;
   //設定計時器
-  let now = Date.now()
-  let end_time = now + seconds * 1000
-  let secondsLeft = Math.round((end_time - now) / 1000)
+  let now = Date.now();
+  let end_time = now + seconds * 1000;
+  let secondsLeft = Math.round((end_time - now) / 1000);
+  let selectedTask = JSON.parse(localStorage.getItem("selectedTask")).task_title;
+  let selectBox = document.querySelector('.selecttask')
+  let messageBox = document.querySelector('.messagebox');
+  messageBox.innerHTML = selectedTask;
 
   return new Promise(function(resolve, reject) {
+    selectBox.classList.add('d-none')
+    messageBox.classList.remove('d-none')
     workStart.classList.add("d-none")
     workStop.classList.remove("d-none")
     setCounter = setInterval(() => {
@@ -200,11 +206,12 @@ function startWorkPromise() {
       return new Promise(function(yes, no) {
         clearInterval(setCounter);
         const stopTime = Date.now()
-        // let confirmDropOrNot = confirm('確定要捨棄番茄嗎?')
         if (confirm('確定要捨棄番茄嗎?')) {
           clearInterval(setCounter);
           displayTimeLeft(seconds)
           workStop.removeEventListener('click', stop)
+          selectBox.classList.remove('d-none')
+          messageBox.classList.add('d-none')
           workStart.classList.remove("d-none")
           workStop.classList.add("d-none")
           reject(confirmDropOrNot)
@@ -249,7 +256,9 @@ let seconds = relaxStart.dataset.time;
 let now = Date.now();
 let end_time = now + seconds * 1000;
 let secondsLeft = Math.round((end_time - now) / 1000);
-let workStart = document.querySelector(".workstartbtn")
+// let workStart = document.querySelector(".workstartbtn");
+let messageBox = document.querySelector('.messagebox');
+messageBox.innerHTML = "休息中...";
 
 
 return new Promise(function(resolve, reject) {
@@ -323,41 +332,50 @@ function start() {
     let relaxStart = document.querySelector(".relaxstartbtn");
     workStop.dataset.id = data["tictac_id"];
     relaxStart.dataset.id = data["tictac_id"];
-    return startWorkPromise()
+    return startWorkPromise();
   }).then((data) => {
-    return finishWorkApiPromise()
+    return finishWorkApiPromise();
   }).then((data) => {
-    let workStop = document.querySelector(".workstopbtn")
-    let relaxStart = document.querySelector(".relaxstartbtn")
-    workStop.classList.add("d-none")
-    relaxStart.classList.remove("d-none")
-    relaxStart.addEventListener('click', relax)
+    let workStop = document.querySelector(".workstopbtn");
+    let relaxStart = document.querySelector(".relaxstartbtn");
+    workStop.classList.add("d-none");
+    relaxStart.classList.remove("d-none");
+    relaxStart.addEventListener('click', relax);
     alert('休息一下');
-    displayTimeLeft(relaxStart.dataset.time)
+    displayTimeLeft(relaxStart.dataset.time);
   }).catch((data) => {
-    return breakWorkApiPromise(data)
+    return breakWorkApiPromise(data);
   }).then((data) => {
   })
 }
 
 function relax() {
   startRelaxPromise().then((data) => {
-    let workStart = document.querySelector(".workstartbtn")
-    let workStop = document.querySelector(".workstopbtn")
+    let workStart = document.querySelector(".workstartbtn");
+    let workStop = document.querySelector(".workstopbtn");
+    let selectBox = document.querySelector('.selecttask');
+    let messageBox = document.querySelector('.messagebox');
+    // messageBox.innerHTML = selectedTask;
     // let relaxStart = document.querySelector(".relaxstartbtn")
-    workStart.classList.remove("d-none")
-    workStop.classList.add("d-none")
-    alert("該開始下一顆番茄了")
-    displayTimeLeft(workStart.dataset.time)
+    workStart.classList.remove("d-none");
+    workStop.classList.add("d-none");
+    selectBox.classList.remove("d-none");
+    messageBox.classList.add("d-none");
+    alert("該開始下一顆番茄了");
+    displayTimeLeft(workStart.dataset.time);
   }).catch((data) => {
-    let workStart = document.querySelector(".workstartbtn")
-    let workStop = document.querySelector(".workstopbtn")
-    let relaxStart = document.querySelector(".relaxstartbtn")
-    workStart.classList.remove("d-none")
-    workStop.classList.add("d-none")
-    relaxStart.classList.add("d-none")
-    alert("直接開始下一顆番茄")
-    displayTimeLeft(workStart.dataset.time)
+    let workStart = document.querySelector(".workstartbtn");
+    let workStop = document.querySelector(".workstopbtn");
+    let relaxStart = document.querySelector(".relaxstartbtn");
+    let selectBox = document.querySelector('.selecttask');
+    let messageBox = document.querySelector('.messagebox');
+    workStart.classList.remove("d-none");
+    workStop.classList.add("d-none");
+    relaxStart.classList.add("d-none");
+    selectBox.classList.remove("d-none");
+    messageBox.classList.add("d-none");
+    alert("直接開始下一顆番茄");
+    displayTimeLeft(workStart.dataset.time);
   })
 }
 
