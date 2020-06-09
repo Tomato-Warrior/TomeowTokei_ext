@@ -62,7 +62,7 @@ form.addEventListener('submit', function loginJson(e) {
   e.preventDefault();
   const email = document.querySelector('#email');
   const password = document.querySelector('#password');
-  postData("http://127.0.0.1:3000/api/v1/login", { email: email.value, password: password.value })
+  postData("https://tomeowtokei.website/api/v1/login", { email: email.value, password: password.value })
     .then((data) => {
       localStorage.setItem("auth_token", data["auth_token"]);
       if (data["message"] === "ok") {
@@ -97,7 +97,7 @@ function pageContent(isLogin) {
 // 找任務
 function getAllTasks() {
   let auth_token = localStorage.getItem("auth_token");
-  postData("http://127.0.0.1:3000/api/v1/gettasks", { auth_token: auth_token })
+  postData("https://tomeowtokei.website/api/v1/gettasks", { auth_token: auth_token })
     .then((data) => {
       localStorage.setItem("tasks", JSON.stringify(data["tasks"]));
       taskDropdown();
@@ -131,7 +131,7 @@ let logout = document.querySelector('.logoutcontainer');
 logout.addEventListener('click', function logoutjson(e) {
   e.preventDefault();
   let logoutValue = localStorage.getItem("auth_token");
-  postData("http://127.0.0.1:3000/api/v1/logout", { auth_token: logoutValue })
+  postData("https://tomeowtokei.website/api/v1/logout", { auth_token: logoutValue })
     .then((data) => {
       pageContent(false);
     })
@@ -162,7 +162,7 @@ function startWorkApiPromise() {
   let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
   let task_id = selectedTask.task_id;
   return new Promise(function(resolve, reject) {
-    postData("http://127.0.0.1:3000/api/v1/startwork", { auth_token: auth_token, task_id: task_id})
+    postData("https://tomeowtokei.website/api/v1/startwork", { auth_token: auth_token, task_id: task_id})
     .then((data) => {
       resolve((data));
     })
@@ -240,7 +240,7 @@ function finishWorkApiPromise() {
   let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
   let task_id = selectedTask.task_id;
   return new Promise(function(resolve, reject) {
-    postData("http://127.0.0.1:3000/api/v1/finishwork", { auth_token: auth_token, tictac_id: tictac_id , task_id: task_id})
+    postData("https://tomeowtokei.website/api/v1/finishwork", { auth_token: auth_token, tictac_id: tictac_id , task_id: task_id})
     .then((data) => {
       resolve((data));
     })
@@ -249,44 +249,43 @@ function finishWorkApiPromise() {
 
 //開始休息計時
 function startRelaxPromise() {
-let setCounter;
-let workStop = document.querySelector(".workstopbtn");
-let relaxStart = document.querySelector(".relaxstartbtn");
-let seconds = relaxStart.dataset.time;
-let now = Date.now();
-let end_time = now + seconds * 1000;
-let secondsLeft = Math.round((end_time - now) / 1000);
-let messageBox = document.querySelector('.messagebox');
-messageBox.innerHTML = "休息中...";
+  let setCounter;
+  let workStop = document.querySelector(".workstopbtn");
+  let relaxStart = document.querySelector(".relaxstartbtn");
+  let seconds = relaxStart.dataset.time;
+  let now = Date.now();
+  let end_time = now + seconds * 1000;
+  let secondsLeft = Math.round((end_time - now) / 1000);
+  let messageBox = document.querySelector('.messagebox');
+  messageBox.innerHTML = "休息中...";
 
+  return new Promise(function(resolve, reject) {
+    relaxStart .classList.add("d-none")
+    workStop.classList.remove("d-none")
 
-return new Promise(function(resolve, reject) {
-  relaxStart .classList.add("d-none")
-  workStop.classList.remove("d-none")
-
-  setCounter = setInterval(() => {
-    secondsLeft = Math.round((end_time - Date.now()) / 1000)
-    displayTimeLeft(secondsLeft)    
-  
-    if (secondsLeft < 0) {
-      clearInterval(setCounter)
-      workStop.removeEventListener('click', stop)
-      resolve("relaxtime over")
-    }
-  },1000)
-
-  //中斷休息
-  workStop.addEventListener('click', stop)
-  
-    function stop() {
-      return new Promise(function(resolve, reject) {
+    setCounter = setInterval(() => {
+      secondsLeft = Math.round((end_time - Date.now()) / 1000)
+      displayTimeLeft(secondsLeft)    
+    
+      if (secondsLeft < 0) {
         clearInterval(setCounter)
-        displayTimeLeft(relaxStart.dataset.time)
-        reject("relaxstop")
         workStop.removeEventListener('click', stop)
-      })
-    }
-})
+        resolve("relaxtime over")
+      }
+    },1000)
+
+    //中斷休息
+    workStop.addEventListener('click', stop)
+    
+      function stop() {
+        return new Promise(function(yes, no) {
+          clearInterval(setCounter)
+          displayTimeLeft(relaxStart.dataset.time)
+          workStop.removeEventListener('click', stop)
+          reject("relaxstop")
+        })
+      }
+  })
 }
 
 //中斷工作
@@ -297,7 +296,7 @@ function breakWorkApiPromise(data){
   let selectedTask = JSON.parse(localStorage.getItem("selectedTask"));
   let task_id = selectedTask.task_id;
   return new Promise(function(resolve, reject) {
-    postData("http://127.0.0.1:3000/api/v1/cancelwork", { auth_token: auth_token, task_id: task_id, tictac_id: tictac_id})
+    postData("https://tomeowtokei.website/api/v1/cancelwork", { auth_token: auth_token, task_id: task_id, tictac_id: tictac_id})
     .then((data) => {
       resolve((data));
     })
