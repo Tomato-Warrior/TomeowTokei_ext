@@ -214,7 +214,7 @@ function startWorkPromise() {
           messageBox.classList.add('d-none')
           workStart.classList.remove("d-none")
           workStop.classList.add("d-none")
-          reject(confirmDropOrNot)
+          reject(false)
         } else {
           end_time += (Date.now() - stopTime) 
           setCounter = setInterval(() => {
